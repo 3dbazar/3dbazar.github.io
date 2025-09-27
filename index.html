@@ -1,1 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Bazar - Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .image-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .image-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-container {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-info {
+            padding: 20px;
+        }
+
+        .image-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .image-description {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .loading-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            color: #999;
+            font-size: 1rem;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            color: white;
+            margin: 20px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>3D Bazar</h1>
+            <p class="subtitle">Explore our 3D collection</p>
+        </header>
+
+        <div class="gallery" id="gallery">
+            <!-- Images will be loaded here -->
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <h3>Unable to load images</h3>
+            <p>Please make sure images are available in the /images folder of your repository.</p>
+        </div>
+    </div>
+
+    <!-- Modal for full-size image viewing -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <img id="modalImage" src="" alt="">
+        </div>
+    </div>
+
+    <script>
+        // Common image file extensions
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+        
+        // Common image filenames to try
+        const commonImageNames = [
+            'image1', 'image2', 'image3', 'image4', 'image5',
+            'photo1', 'photo2', 'photo3', 'photo4', 'photo5',
+            'model1', 'model2', 'model3', 'model4', 'model5',
+            'render1', 'render2', 'render3', 'render4', 'render5',
+            '3d1', '3d2', '3d3', '3d4', '3d5',
+            'sample1', 'sample2', 'sample3', 'sample4', 'sample5',
+            'example1', 'example2', 'example3',
+            'logo', 'banner', 'hero', 'thumbnail'
+        ];
+
+        let foundImages = [];
+        let loadedCount = 0;
+
+        function generateImageCombinations() {
+            const combinations = [];
+            
+            commonImageNames.forEach(name => {
+                imageExtensions.forEach(ext => {
+                    combinations.push(`images/${name}.${ext}`);
+                });
+            });
+            
+            return combinations;
+        }
+
+        function checkImageExists(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve({ src, exists: true });
+                img.onerror = () => resolve({ src, exists: false });
+                img.src = src;
+            });
+        }
+
+        function getImageTitle(filename) {
+            const name = filename.split('/').pop().split('.')[0];
+            return name.charAt(0).toUpperCase() + name.slice(1).replace(/[_-]/g, ' ');
+        }
+
+        function getImageDescription(filename) {
+            const descriptions = {
+                'logo': 'Brand logo and identity',
+                'banner': 'Main banner image',
+                'hero': 'Hero section image',
+                'model': '3D model render',
+                'render': 'High-quality 3D render',
+                '3d': '3D visualization',
+                'photo': 'Photography sample',
+                'image': 'Gallery image',
+                'sample': 'Sample work',
+                'example': 'Example project',
+                'thumbnail': 'Preview thumbnail'
+            };
+            
+            const basename = filename.split('/').pop().split('.')[0].toLowerCase();
+            
+            for (let key in descriptions) {
+                if (basename.includes(key)) {
+                    return descriptions[key];
+                }
+            }
+            
+            return 'Creative visual content';
+        }
+
+        function createImageCard(src) {
+            const card = document.createElement('div');
+            card.className = 'image-card fade-in';
+            
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'image-container';
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = getImageTitle(src);
+            img.loading = 'lazy';
+            img.onclick = () => openModal(src);
+            
+            const imageInfo = document.createElement('div');
+            imageInfo.className = 'image-info';
+            
+            const title = document.createElement('div');
+            title.className = 'image-title';
+            title.textContent = getImageTitle(src);
+            
+            const description = document.createElement('div');
+            description.className = 'image-description';
+            description.textContent = getImageDescription(src);
+            
+            imageContainer.appendChild(img);
+            imageInfo.appendChild(title);
+            imageInfo.appendChild(description);
+            card.appendChild(imageContainer);
+            card.appendChild(imageInfo);
+            
+            return card;
+        }
+
+        function openModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'flex';
+            modalImg.src = src;
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        }
+
+        // Close modal with escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        async function loadImages() {
+            const gallery = document.getElementById('gallery');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Show loading placeholder
+            gallery.innerHTML = '<div class="loading-placeholder">Loading images...</div>';
+            
+            const imageCombinations = generateImageCombinations();
+            const batchSize = 10;
+            
+            for (let i = 0; i < imageCombinations.length; i += batchSize) {
+                const batch = imageCombinations.slice(i, i + batchSize);
+                const results = await Promise.all(batch.map(checkImageExists));
+                
+                results.forEach(result => {
+                    if (result.exists) {
+                        foundImages.push(result.src);
+                    }
+                });
+            }
+            
+            // Clear loading placeholder
+            gallery.innerHTML = '';
+            
+            if (foundImages.length > 0) {
+                foundImages.forEach((src, index) => {
+                    setTimeout(() => {
+                        const card = createImageCard(src);
+                        gallery.appendChild(card);
+                    }, index * 100); // Stagger the animations
+                });
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Load images when page loads
+        document.addEventListener('DOMContentLoaded', loadImages);
+    </script>
+</body>
+</html>
