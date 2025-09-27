@@ -333,7 +333,7 @@
         // Generate image URLs for the 3dbazar repository
         function generateImageCombinations() {
             const combinations = [];
-            const baseUrl = 'https://raw.githubusercontent.com/3dbazar/3dbazar.github.io/main/images/';
+            const baseUrl = './images/';
             
             // First try jpeg format specifically, then fallback to other extensions
             for (let i = 1; i <= 50; i++) {
@@ -351,8 +351,22 @@
         function checkImageExists(src) {
             return new Promise((resolve) => {
                 const img = new Image();
-                img.onload = () => resolve({ src, exists: true });
-                img.onerror = () => resolve({ src, exists: false });
+                img.crossOrigin = "anonymous";
+                
+                const timeout = setTimeout(() => {
+                    resolve({ src, exists: false });
+                }, 5000); // 5 second timeout
+                
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    resolve({ src, exists: true });
+                };
+                
+                img.onerror = () => {
+                    clearTimeout(timeout);
+                    resolve({ src, exists: false });
+                };
+                
                 img.src = src;
             });
         }
@@ -445,10 +459,12 @@
             const errorMessage = document.getElementById('errorMessage');
             
             // Show loading placeholder
-            gallery.innerHTML = '<div class="loading-placeholder">Loading images...</div>';
+            gallery.innerHTML = '<div class="loading-placeholder">Searching for 3D designs...</div>';
             
             const imageCombinations = generateImageCombinations();
-            const batchSize = 10;
+            console.log('Checking these URLs:', imageCombinations.slice(0, 10)); // Log first 10 URLs for debugging
+            
+            const batchSize = 5; // Smaller batches to avoid overwhelming
             
             for (let i = 0; i < imageCombinations.length; i += batchSize) {
                 const batch = imageCombinations.slice(i, i + batchSize);
@@ -456,13 +472,19 @@
                 
                 results.forEach(result => {
                     if (result.exists) {
+                        console.log('Found image:', result.src); // Debug log
                         foundImages.push(result.src);
                     }
                 });
+                
+                // Add a small delay between batches
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             // Clear loading placeholder
             gallery.innerHTML = '';
+            
+            console.log('Total images found:', foundImages.length); // Debug log
             
             if (foundImages.length > 0) {
                 foundImages.forEach((src, index) => {
@@ -473,6 +495,10 @@
                 });
             } else {
                 errorMessage.style.display = 'block';
+                // Add a test image to see if the structure works
+                console.log('No images found. Testing with known URL...');
+                const testCard = createImageCard('./images/img_1.jpeg');
+                gallery.appendChild(testCard);
             }
         }
 
