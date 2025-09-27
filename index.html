@@ -28,10 +28,53 @@
             text-align: center;
             margin-bottom: 40px;
             padding: 40px 0;
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .logo::before {
+            content: "";
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            border-radius: 10px;
+            transform: rotateY(45deg) rotateX(15deg);
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.3),
+                -2px -2px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .logo::after {
+            content: "3D";
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 1;
         }
 
         h1 {
@@ -311,9 +354,24 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo-container">
+                <div class="logo"></div>
+            </div>
             <h1>3D Bazar</h1>
             <p class="subtitle">Professional 3D Design Gallery</p>
         </header>
+
+        <div class="contact-section">
+            <h2>Ready to Bring Your Vision to Life?</h2>
+            <div class="contact-content">
+                <p>Interested in commissioning a custom 3D design project or have questions about our work?</p>
+                <p>We specialize in creating stunning visualizations, product renders, and architectural designs tailored to your needs.</p>
+                <p><strong>To place your order, email us at:</strong></p>
+            </div>
+            <a href="mailto:mdbazarah@icloud.com" class="contact-email">
+                📧 mdbazarah@icloud.com
+            </a>
+        </div>
 
         <div class="intro">
             <h2>Welcome to Our 3D Design Showcase</h2>
@@ -346,6 +404,7 @@
             <h3>No 3D designs found</h3>
             <p>Please make sure your 3D design images are available in the repository under /images/ folder with names starting with "img_" followed by a number (e.g., img_1.jpg, img_2.png).</p>
         </div>
+    </div>
     </div>
 
     <!-- Modal for full-size image viewing -->
