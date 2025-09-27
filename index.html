@@ -46,6 +46,75 @@
             font-size: 1.2rem;
             color: rgba(255, 255, 255, 0.8);
             font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .intro {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .intro h2 {
+            color: white;
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .intro-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .intro-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .intro-features {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .intro-features h3 {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .intro-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
 
         .gallery {
@@ -198,16 +267,39 @@
     <div class="container">
         <header>
             <h1>3D Bazar</h1>
-            <p class="subtitle">Explore our 3D collection</p>
+            <p class="subtitle">Professional 3D Design Gallery</p>
         </header>
+
+        <div class="intro">
+            <h2>Welcome to Our 3D Design Showcase</h2>
+            <div class="intro-content">
+                <div class="intro-text">
+                    <p>Step into the world of cutting-edge 3D design and visualization. Our gallery showcases a diverse collection of 3D artworks, architectural renderings, product designs, and creative visualizations that push the boundaries of digital creativity.</p>
+                    
+                    <p>Each piece represents hours of meticulous crafting, attention to detail, and innovative use of modern 3D design tools and techniques.</p>
+                </div>
+                
+                <div class="intro-features">
+                    <h3>What You'll Find:</h3>
+                    <ul class="feature-list">
+                        <li>Architectural Visualizations</li>
+                        <li>Product Design Renders</li>
+                        <li>Abstract 3D Artworks</li>
+                        <li>Character Modeling</li>
+                        <li>Environmental Scenes</li>
+                        <li>Technical Illustrations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
         <div class="gallery" id="gallery">
             <!-- Images will be loaded here -->
         </div>
 
         <div id="errorMessage" class="error-message" style="display: none;">
-            <h3>Unable to load images</h3>
-            <p>Please make sure images are available in the /images folder of your repository.</p>
+            <h3>No 3D designs found</h3>
+            <p>Please make sure your 3D design images are available in the repository under /images/ folder with names starting with "img_" followed by a number (e.g., img_1.jpg, img_2.png).</p>
         </div>
     </div>
 
@@ -238,14 +330,20 @@
         let foundImages = [];
         let loadedCount = 0;
 
+        // Generate image URLs for the 3dbazar repository
         function generateImageCombinations() {
             const combinations = [];
+            const baseUrl = 'https://raw.githubusercontent.com/3dbazar/3dbazar.github.io/main/images/';
             
-            commonImageNames.forEach(name => {
-                imageExtensions.forEach(ext => {
-                    combinations.push(`images/${name}.${ext}`);
+            // First try jpeg format specifically, then fallback to other extensions
+            for (let i = 1; i <= 50; i++) {
+                // Try jpeg first (most likely format)
+                combinations.push(`${baseUrl}img_${i}.jpeg`);
+                // Then try other common extensions
+                ['jpg', 'png', 'gif', 'webp'].forEach(ext => {
+                    combinations.push(`${baseUrl}img_${i}.${ext}`);
                 });
-            });
+            }
             
             return combinations;
         }
@@ -261,33 +359,26 @@
 
         function getImageTitle(filename) {
             const name = filename.split('/').pop().split('.')[0];
-            return name.charAt(0).toUpperCase() + name.slice(1).replace(/[_-]/g, ' ');
+            const number = name.replace('img_', '');
+            return `3D Design ${number}`;
         }
 
         function getImageDescription(filename) {
-            const descriptions = {
-                'logo': 'Brand logo and identity',
-                'banner': 'Main banner image',
-                'hero': 'Hero section image',
-                'model': '3D model render',
-                'render': 'High-quality 3D render',
-                '3d': '3D visualization',
-                'photo': 'Photography sample',
-                'image': 'Gallery image',
-                'sample': 'Sample work',
-                'example': 'Example project',
-                'thumbnail': 'Preview thumbnail'
-            };
+            const descriptions = [
+                'Stunning 3D architectural visualization',
+                'Creative product design render',
+                'Abstract 3D artistic composition',
+                'Detailed character modeling work',
+                'Environmental 3D scene design',
+                'Technical illustration and design',
+                'Photorealistic 3D rendering',
+                'Innovative digital sculpture',
+                'Contemporary 3D artwork',
+                'Professional visualization project'
+            ];
             
-            const basename = filename.split('/').pop().split('.')[0].toLowerCase();
-            
-            for (let key in descriptions) {
-                if (basename.includes(key)) {
-                    return descriptions[key];
-                }
-            }
-            
-            return 'Creative visual content';
+            const number = parseInt(filename.split('img_')[1]) || 0;
+            return descriptions[number % descriptions.length];
         }
 
         function createImageCard(src) {
